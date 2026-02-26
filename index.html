@@ -66,10 +66,48 @@
       font-weight: 300;
     }
 
+    .project-indicator {
+      background: #2a2a2a;
+      padding: 10px 20px;
+      border-radius: 6px;
+      display: none;
+      max-width: 500px;
+    }
+
+    .project-indicator.active {
+      display: block;
+    }
+
+    .project-indicator .project-name {
+      font-weight: 500;
+      color: #4a9eff;
+      margin-bottom: 3px;
+    }
+
+    .project-indicator .project-path {
+      font-size: 11px;
+      color: #888;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .project-indicator .repo-info {
+      font-size: 11px;
+      color: #4caf50;
+      margin-top: 3px;
+    }
+
     .login-status {
       display: flex;
       align-items: center;
       gap: 10px;
+    }
+
+    #statusText {
+      font-size: 13px;
+      font-weight: 500;
+      min-width: 120px;
     }
 
     .status-indicator {
@@ -99,6 +137,40 @@
 
     .section.active {
       display: block;
+    }
+
+    .section-header {
+      background: #2a2a2a;
+      padding: 15px 20px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border-left: 3px solid #4a9eff;
+    }
+
+    .section-header h2 {
+      font-size: 18px;
+      font-weight: 400;
+      margin-bottom: 5px;
+    }
+
+    .section-header .info {
+      font-size: 12px;
+      color: #888;
+    }
+
+    .section-header .current-project {
+      font-size: 13px;
+      color: #4a9eff;
+      margin-top: 8px;
+    }
+
+    .no-project-warning {
+      background: #3a2a1a;
+      border: 1px solid #664422;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      color: #ffaa66;
     }
 
     /* Buttons */
@@ -162,6 +234,7 @@
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 20px;
+      transition: box-shadow 0.3s ease;
     }
 
     .card h3 {
@@ -197,32 +270,39 @@
 
     /* Logs */
     .log-area {
-      background: #1a1a1a;
-      border: 1px solid #333;
+      background: #0a0a0a;
+      border: 1px solid #444;
       border-radius: 4px;
-      padding: 15px;
-      max-height: 200px;
+      padding: 10px;
+      min-height: 150px;
+      max-height: 300px;
       overflow-y: auto;
       font-family: 'Courier New', monospace;
       font-size: 12px;
-      margin-top: 15px;
     }
 
     .log-entry {
       margin-bottom: 5px;
       padding: 5px;
+      border-left: 3px solid transparent;
     }
 
     .log-entry.success {
       color: #4caf50;
+      border-left-color: #4caf50;
+      background: rgba(76, 175, 80, 0.1);
     }
 
     .log-entry.error {
       color: #f44336;
+      border-left-color: #f44336;
+      background: rgba(244, 67, 54, 0.1);
     }
 
     .log-entry.info {
       color: #4a9eff;
+      border-left-color: #4a9eff;
+      background: rgba(74, 158, 255, 0.1);
     }
 
     /* Project info */
@@ -313,6 +393,7 @@
 <body>
   <div class="sidebar">
     <div class="sidebar-item active" data-section="publish">Publicar</div>
+    <div class="sidebar-item" data-section="git">Git</div>
     <div class="sidebar-item" data-section="gitignore">.gitignore</div>
     <div class="sidebar-item" data-section="branches">Branches</div>
     <div class="sidebar-item" data-section="status">Status</div>
@@ -321,6 +402,11 @@
   <div class="main-content">
     <div class="header">
       <h1>Lynx Publisher</h1>
+      <div class="project-indicator" id="projectIndicator">
+        <div class="project-name" id="projectName">Nenhum projeto selecionado</div>
+        <div class="project-path" id="projectPath"></div>
+        <div class="repo-info" id="repoInfo"></div>
+      </div>
       <div class="login-status">
         <div class="status-indicator" id="statusIndicator"></div>
         <span id="statusText">Verificando...</span>
@@ -331,14 +417,38 @@
     <div class="content-area">
       <!-- SEÇÃO: PUBLICAR -->
       <div class="section active" id="publish">
+        <div class="section-header">
+          <h2>Publicar Projeto no GitHub</h2>
+          <div class="info">Selecione um projeto e publique no GitHub</div>
+          <div class="current-project" id="publishProjectInfo"></div>
+        </div>
+
         <div class="card">
           <h3>Selecionar Projeto</h3>
           <button id="selectProjectBtn">Selecionar ZIP ou Pasta</button>
           <div id="projectInfo" class="project-info" style="display: none;"></div>
         </div>
 
-        <div class="card" id="publishCard" style="display: none;">
-          <h3>Publicar no GitHub</h3>
+        <div class="card" id="currentRepoCard" style="display: none; background: #2a2a3a; border: 1px solid #4a9eff;">
+          <h3>📡 Repositório Atual</h3>
+          <div id="currentRepoInfo" style="margin: 15px 0;"></div>
+          <div class="button-group">
+            <button id="changeRepoBtn" class="secondary">Trocar Repositório</button>
+            <button id="disconnectRepoBtn" class="danger">Desconectar</button>
+          </div>
+        </div>
+
+        <div class="card" id="remoteDetectedCard" style="display: none; background: #2a3a2a; border: 1px solid #4caf50;">
+          <h3>🎯 Ações Rápidas</h3>
+          <p style="margin-bottom: 15px; color: #aaa;">Repositório remoto detectado. Escolha uma ação:</p>
+          <div class="button-group">
+            <button id="syncWithRemoteBtn">Sincronizar com Remoto (Pull)</button>
+            <button id="pushToRemoteBtn" class="secondary">Enviar Alterações (Push)</button>
+          </div>
+        </div>
+
+        <div class="card" id="publishCard">
+          <h3>Gerenciar Repositório</h3>
           
           <div class="radio-group">
             <label>
@@ -347,7 +457,7 @@
             </label>
             <label>
               <input type="radio" name="repoType" value="existing">
-              Usar repositório existente
+              Conectar a repositório existente
             </label>
           </div>
 
@@ -372,16 +482,133 @@
           </div>
         </div>
 
-        <div class="log-area" id="publishLog">
+        <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-top: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="color: #888; font-size: 12px;">Logs de Publicação</span>
             <button onclick="document.getElementById('publishLog').innerHTML = ''" style="padding: 4px 8px; font-size: 11px;" class="secondary">Limpar</button>
           </div>
+          <div class="log-area" id="publishLog"></div>
+        </div>
+      </div>
+
+      <!-- SEÇÃO: GIT -->
+      <div class="section" id="git">
+        <div class="section-header">
+          <h2>Operações Git</h2>
+          <div class="info">Controle completo sobre commits, push, pull e mais</div>
+          <div class="current-project" id="gitProjectInfo"></div>
+        </div>
+
+        <div id="gitNoProject" class="no-project-warning" style="display: none;">
+          ⚠️ Selecione um projeto na aba "Publicar" primeiro
+        </div>
+
+        <div class="card">
+          <h3>Inicializar Git</h3>
+          <p style="margin-bottom: 15px; color: #aaa;">Inicializa um repositório Git no projeto</p>
+          <button id="gitInitBtn">git init</button>
+        </div>
+
+        <div class="card">
+          <h3>Status do Repositório</h3>
+          <button id="gitStatusBtn">Ver Status (git status)</button>
+          <div id="gitStatusOutput" style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin-top: 15px; display: none; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Adicionar Arquivos</h3>
+          <div class="radio-group">
+            <label>
+              <input type="radio" name="addType" value="all" checked>
+              Todos os arquivos (git add .)
+            </label>
+            <label>
+              <input type="radio" name="addType" value="specific">
+              Arquivo específico
+            </label>
+          </div>
+          <div id="specificFileInput" style="display: none; margin: 10px 0;">
+            <input type="text" id="specificFile" placeholder="ex: src/index.js">
+          </div>
+          <button id="gitAddBtn">Adicionar Arquivos</button>
+        </div>
+
+        <div class="card">
+          <h3>Commit</h3>
+          <div class="form-group">
+            <label>Tipo de commit:</label>
+            <select id="commitType">
+              <option value="feat">feat: Nova funcionalidade</option>
+              <option value="fix">fix: Correção de bug</option>
+              <option value="docs">docs: Documentação</option>
+              <option value="style">style: Formatação</option>
+              <option value="refactor">refactor: Refatoração</option>
+              <option value="test">test: Testes</option>
+              <option value="chore">chore: Manutenção</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mensagem do commit:</label>
+            <input type="text" id="commitMessage" placeholder="descrição das alterações">
+          </div>
+          <button id="gitCommitBtn">Fazer Commit</button>
+        </div>
+
+        <div class="card">
+          <h3>Push / Pull</h3>
+          <div class="button-group">
+            <button id="gitPushBtn">Push (Enviar)</button>
+            <button id="gitPullBtn" class="secondary">Pull (Baixar)</button>
+          </div>
+          <div style="margin-top: 15px;">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="checkbox" id="forcePush">
+              Force push (--force) ⚠️ Use com cuidado!
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Histórico de Commits</h3>
+          <div class="form-group">
+            <label>Quantidade de commits:</label>
+            <input type="number" id="logLimit" value="10" min="1" max="50">
+          </div>
+          <button id="gitLogBtn">Ver Histórico (git log)</button>
+          <div id="gitLogOutput" style="background: #1a1a1a; padding: 15px; border-radius: 4px; margin-top: 15px; display: none; font-family: 'Courier New', monospace; font-size: 12px; white-space: pre-wrap;"></div>
+        </div>
+
+        <div class="card">
+          <h3>Operações Avançadas</h3>
+          <div class="button-group">
+            <button id="gitResetBtn" class="danger">Reset (Desfazer)</button>
+            <button id="gitStashBtn" class="secondary">Stash (Guardar)</button>
+            <button id="gitStashPopBtn" class="secondary">Stash Pop (Recuperar)</button>
+          </div>
+        </div>
+
+        <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-top: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <span style="color: #888; font-size: 12px;">Logs do Git</span>
+            <button onclick="document.getElementById('gitLog').innerHTML = ''" style="padding: 4px 8px; font-size: 11px;" class="secondary">Limpar</button>
+          </div>
+          <div class="log-area" id="gitLog"></div>
         </div>
       </div>
 
       <!-- SEÇÃO: GITIGNORE -->
       <div class="section" id="gitignore">
+        <div class="section-header">
+          <h2>Gerenciar .gitignore</h2>
+          <div class="info">Configure quais arquivos o Git deve ignorar</div>
+          <div class="current-project" id="gitignoreProjectInfo"></div>
+        </div>
+
+        <div id="gitignoreNoProject" class="no-project-warning" style="display: none;">
+          ⚠️ Selecione um projeto na aba "Publicar" primeiro
+        </div>
+
         <div class="card">
           <h3>Gerenciar .gitignore</h3>
           <div class="gitignore-editor">
@@ -392,16 +619,27 @@
             </div>
           </div>
         </div>
-        <div class="log-area" id="gitignoreLog">
+        <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-top: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="color: #888; font-size: 12px;">Logs do .gitignore</span>
             <button onclick="document.getElementById('gitignoreLog').innerHTML = ''" style="padding: 4px 8px; font-size: 11px;" class="secondary">Limpar</button>
           </div>
+          <div class="log-area" id="gitignoreLog"></div>
         </div>
       </div>
 
       <!-- SEÇÃO: BRANCHES -->
       <div class="section" id="branches">
+        <div class="section-header">
+          <h2>Gerenciar Branches</h2>
+          <div class="info">Crie, troque e gerencie branches do projeto</div>
+          <div class="current-project" id="branchesProjectInfo"></div>
+        </div>
+
+        <div id="branchesNoProject" class="no-project-warning" style="display: none;">
+          ⚠️ Selecione um projeto na aba "Publicar" primeiro
+        </div>
+
         <div class="card">
           <h3>Gerenciar Branches</h3>
           <div class="form-group">
@@ -423,11 +661,18 @@
           <button id="mergeToMainBtn">Enviar Alterações para Main</button>
         </div>
 
-        <div class="log-area" id="branchLog">
+        <div class="card" id="branchProblemsCard" style="display: none; background: #3a2a1a; border: 1px solid #ff9800;">
+          <h3>⚠️ Resolver Problemas</h3>
+          <div id="branchProblemInfo" style="margin: 15px 0; color: #ffaa66;"></div>
+          <div class="button-group" id="branchProblemActions"></div>
+        </div>
+
+        <div style="background: #1a1a1a; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-top: 20px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <span style="color: #888; font-size: 12px;">Logs de Branches</span>
             <button onclick="document.getElementById('branchLog').innerHTML = ''" style="padding: 4px 8px; font-size: 11px;" class="secondary">Limpar</button>
           </div>
+          <div class="log-area" id="branchLog"></div>
         </div>
       </div>
 

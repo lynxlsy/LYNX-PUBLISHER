@@ -61,9 +61,26 @@ async function createBranch(projectPath, branchName) {
 
 // Trocar de branch
 async function switchBranch(projectPath, branchName) {
+  // Verificar se há alterações não commitadas
+  const statusResult = await runCommand('git status --porcelain', projectPath);
+  if (statusResult.output.length > 0) {
+    return { 
+      success: false, 
+      message: 'Você tem alterações não commitadas. Faça commit ou use stash antes de trocar de branch.',
+      needsCommit: true
+    };
+  }
+  
   const result = await runCommand(`git checkout ${branchName}`, projectPath);
   
   if (!result.success) {
+    if (result.error.includes('resolve your current index')) {
+      return { 
+        success: false, 
+        message: 'Há conflitos não resolvidos. Resolva os conflitos ou use "git reset --hard" para descartar alterações.',
+        hasConflicts: true
+      };
+    }
     return { success: false, message: 'Erro ao trocar de branch: ' + result.error };
   }
   
@@ -75,6 +92,24 @@ async function pushBranch(projectPath, branchName) {
   const result = await runCommand(`git push -u origin ${branchName}`, projectPath);
   
   if (!result.success && !result.error.includes('up-to-date')) {
+    // Branch está atrás do remoto
+    if (result.error.includes('non-fast-forward') || result.error.includes('behind')) {
+      return { 
+        success: false, 
+        message: 'A branch local está atrás do remoto. Faça pull primeiro para sincronizar.',
+        needsPull: true
+      };
+    }
+    
+    // Erro no servidor
+    if (result.error.includes('remote rejected') || result.error.includes('remote unpack failed')) {
+      return { 
+        success: false, 
+        message: 'Erro no servidor GitHub. Tente novamente em alguns segundos.',
+        serverError: true
+      };
+    }
+    
     return { success: false, message: 'Erro ao enviar branch: ' + result.error };
   }
   

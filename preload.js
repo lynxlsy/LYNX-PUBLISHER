@@ -25,5 +25,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pushBranch: (data) => ipcRenderer.invoke('push-branch', data),
   
   // Merge
-  mergeToMain: (projectPath) => ipcRenderer.invoke('merge-to-main', projectPath)
+  mergeToMain: (projectPath) => ipcRenderer.invoke('merge-to-main', projectPath),
+  
+  // Repository Management
+  disconnectRepo: (projectPath) => ipcRenderer.invoke('disconnect-repo', projectPath),
+  
+  // Git Operations
+  gitInit: (projectPath) => ipcRenderer.invoke('git-init', projectPath),
+  gitStatus: (projectPath) => ipcRenderer.invoke('git-status', projectPath),
+  gitAdd: (data) => ipcRenderer.invoke('git-add', data),
+  gitCommit: (data) => ipcRenderer.invoke('git-commit', data),
+  gitPush: (data) => ipcRenderer.invoke('git-push', data),
+  gitPull: (projectPath) => ipcRenderer.invoke('git-pull', projectPath),
+  gitLog: (data) => ipcRenderer.invoke('git-log', data),
+  gitReset: (projectPath) => ipcRenderer.invoke('git-reset', projectPath),
+  gitStash: (projectPath) => ipcRenderer.invoke('git-stash', projectPath),
+  gitStashPop: (projectPath) => ipcRenderer.invoke('git-stash-pop', projectPath)
 });
