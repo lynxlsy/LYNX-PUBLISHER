@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+
+# Build
+dist/
+build/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Electron
+out/
+dist/
+
+# Dependencies
+node_modules/
+vendor/
+# Environment
+.env
+.env.local
+.env.*.local
+# Build
+dist/
+build/
+out/
+*.log
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+# OS
+.DS_Store
+Thumbs.db
+# Temporary
+tmp/
+temp/
+*.tmp
