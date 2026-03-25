@@ -4,7 +4,6 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 
-// Executar comando
 async function runCommand(command, cwd) {
   try {
     const { stdout, stderr } = await execAsync(command, { cwd });
@@ -14,7 +13,6 @@ async function runCommand(command, cwd) {
   }
 }
 
-// Obter conteúdo do .gitignore
 async function getGitignore(projectPath) {
   const gitignorePath = path.join(projectPath, '.gitignore');
   
@@ -30,14 +28,12 @@ async function getGitignore(projectPath) {
   }
 }
 
-// Salvar .gitignore
 async function saveGitignore(projectPath, content) {
   const gitignorePath = path.join(projectPath, '.gitignore');
   
   try {
     fs.writeFileSync(gitignorePath, content, 'utf8');
     
-    // Commit automático
     if (fs.existsSync(path.join(projectPath, '.git'))) {
       await runCommand('git add .gitignore', projectPath);
       await runCommand('git commit -m "update gitignore"', projectPath);
@@ -49,7 +45,6 @@ async function saveGitignore(projectPath, content) {
   }
 }
 
-// Adicionar padrões comuns
 async function addCommonPatterns(projectPath) {
   const commonPatterns = `
 # Dependencies
@@ -86,7 +81,6 @@ temp/
   const currentResult = await getGitignore(projectPath);
   let content = currentResult.content || '';
   
-  // Adicionar padrões se não existirem
   const lines = content.split('\n');
   const newPatterns = commonPatterns.split('\n').filter(line => {
     const trimmed = line.trim();

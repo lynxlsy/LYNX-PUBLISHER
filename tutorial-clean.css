@@ -1,0 +1,384 @@
+/* ============================================
+   CLEAN TUTORIAL LAYOUT - STABLE & READABLE
+   ============================================ */
+
+/* Base Tutorial Container */
+.tutorial-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+/* Section Spacing */
+.tutorial-section {
+  margin-bottom: var(--space-8);
+}
+
+.tutorial-section:last-child {
+  margin-bottom: 0;
+}
+
+/* Typography Hierarchy */
+.tutorial-section h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  margin-top: 0;
+}
+
+.tutorial-section h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.tutorial-section p {
+  margin-bottom: var(--space-4);
+  color: var(--text-secondary);
+}
+
+.tutorial-section p:last-child {
+  margin-bottom: 0;
+}
+
+/* Ordered Lists - Main Steps */
+.tutorial-steps {
+  list-style: none;
+  counter-reset: step-counter;
+  padding-left: 0;
+  margin: var(--space-6) 0;
+}
+
+.tutorial-steps > li {
+  counter-increment: step-counter;
+  position: relative;
+  padding-left: 48px;
+  margin-bottom: var(--space-6);
+}
+
+.tutorial-steps > li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.tutorial-steps > li > strong {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.tutorial-steps > li > p {
+  margin-bottom: var(--space-3);
+  color: var(--text-secondary);
+}
+
+/* Nested Lists - Sub-items */
+.tutorial-steps ul,
+.tutorial-section ul {
+  list-style: disc;
+  padding-left: var(--space-6);
+  margin: var(--space-3) 0;
+}
+
+.tutorial-steps ul li,
+.tutorial-section ul li {
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+}
+
+.tutorial-steps ul ul {
+  list-style: circle;
+  margin-top: var(--space-2);
+}
+
+/* Inline Code */
+code {
+  background: var(--bg-subtle);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 0.875rem;
+  color: var(--primary);
+  border: 1px solid var(--border-default);
+}
+
+/* Code Blocks */
+.tutorial-code {
+  background: var(--bg-base);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 0.875rem;
+  color: var(--success);
+  white-space: pre-wrap;
+  overflow-x: auto;
+}
+
+/* Tip Callout */
+.tutorial-tip {
+  background: rgba(74, 158, 255, 0.08);
+  border-left: 4px solid var(--primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.tutorial-tip-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tutorial-tip-content {
+  flex: 1;
+}
+
+.tutorial-tip-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.tutorial-tip-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tutorial-tip-text ul {
+  margin-top: var(--space-2);
+  padding-left: var(--space-5);
+}
+
+.tutorial-tip-text li {
+  margin-bottom: var(--space-1);
+}
+
+/* Warning Callout */
+.tutorial-warning {
+  background: rgba(255, 152, 0, 0.08);
+  border-left: 4px solid #ff9800;
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+  display: flex;
+  gap: var(--space-3);
+}
+
+.tutorial-warning-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.tutorial-warning-content {
+  flex: 1;
+}
+
+.tutorial-warning-title {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.tutorial-warning-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tutorial-warning-text ul {
+  margin-top: var(--space-2);
+  padding-left: var(--space-5);
+}
+
+/* Concept Box */
+.tutorial-concept {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.tutorial-concept-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  margin-bottom: var(--space-3);
+}
+
+.tutorial-concept-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tutorial-concept-text ul {
+  margin-top: var(--space-2);
+  padding-left: var(--space-5);
+}
+
+/* Comparison Grid */
+.tutorial-comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+}
+
+.tutorial-comparison-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.tutorial-comparison-title {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+}
+
+.tutorial-comparison-text {
+  font-size: 0.9375rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.tutorial-comparison-text ul {
+  margin-top: var(--space-2);
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+
+.tutorial-comparison-text li {
+  margin-bottom: var(--space-2);
+}
+
+/* Command List */
+.tutorial-command-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.tutorial-command-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+
+.tutorial-command-name {
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--success);
+  margin-bottom: var(--space-2);
+}
+
+.tutorial-command-desc {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.tutorial-command-example {
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  background: var(--bg-base);
+  padding: var(--space-3);
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  margin-top: var(--space-2);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tutorial-container {
+    padding: var(--space-4);
+  }
+
+  .tutorial-steps > li {
+    padding-left: 40px;
+  }
+
+  .tutorial-steps > li::before {
+    width: 28px;
+    height: 28px;
+    font-size: 0.875rem;
+  }
+
+  .tutorial-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .tutorial-section h3 {
+    font-size: 1.25rem;
+  }
+
+  .tutorial-section h4 {
+    font-size: 1rem;
+  }
+}
+
+/* Accessibility */
+.tutorial-steps > li:focus-within::before {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Link Styling */
+.tutorial-section a,
+.tutorial-tip-text a,
+.tutorial-warning-text a,
+.tutorial-concept-text a {
+  color: var(--primary);
+  text-decoration: underline;
+  transition: opacity 0.2s ease;
+}
+
+.tutorial-section a:hover,
+.tutorial-tip-text a:hover,
+.tutorial-warning-text a:hover,
+.tutorial-concept-text a:hover {
+  opacity: 0.8;
+}
+
+/* Strong Text */
+strong {
+  font-weight: 600;
+  color: var(--text-primary);
+}

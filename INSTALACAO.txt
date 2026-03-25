@@ -1,0 +1,44 @@
+LYNX PUBLISHER - GUIA DE INSTALAÇÃO
+=====================================
+
+PRÉ-REQUISITOS (instale antes de qualquer coisa)
+-------------------------------------------------
+- Node.js v16+       https://nodejs.org/
+- Git                https://git-scm.com/downloads
+- GitHub CLI (gh)    https://cli.github.com/
+
+Para confirmar que estão instalados, rode no terminal:
+  node --version
+  git --version
+  gh --version
+
+
+OPÇÃO 1 - USANDO OS ARQUIVOS .BAT (mais fácil)
+-----------------------------------------------
+1. Rode o install.bat
+   - Verifica se Node.js, Git e GitHub CLI estão instalados
+   - Instala as dependências do projeto (npm install)
+   - Se algo estiver faltando, ele avisa e para
+
+2. Depois rode o start.bat
+   - Verifica se as dependências foram instaladas
+   - Inicia o aplicativo (npm start)
+   - Se rodar sem ter feito o install.bat antes, ele avisa
+
+
+OPÇÃO 2 - PELO TERMINAL (manual)
+---------------------------------
+1. Abra o terminal na pasta do projeto
+
+2. Instale as dependências:
+     npm install
+
+3. Inicie o aplicativo:
+     npm start
+
+
+OBSERVAÇÕES
+-----------
+- Se o app já estiver aberto e você fizer alguma alteração, feche tudo e rode novamente
+- Durante o desenvolvimento, use Ctrl+R dentro do app para recarregar sem fechar
+- O login no GitHub é feito dentro do próprio app, não precisa configurar nada antes

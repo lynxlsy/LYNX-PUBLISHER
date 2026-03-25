@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const gitManager = require('./modules/gitManager');
 const branchManager = require('./modules/branchManager');
@@ -40,19 +40,27 @@ app.on('activate', () => {
   }
 });
 
-// ========== HANDLERS ==========
-
-// Login GitHub
 ipcMain.handle('github-login', async () => {
   return await gitManager.githubLogin();
 });
 
-// Verificar status de login
 ipcMain.handle('check-login-status', async () => {
   return await gitManager.checkLoginStatus();
 });
 
-// Selecionar projeto (ZIP ou pasta)
+ipcMain.handle('request-delete-scope', async () => {
+  return await gitManager.requestDeleteScope();
+});
+
+ipcMain.handle('open-external', async (event, url) => {
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
 ipcMain.handle('select-project', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     properties: ['openFile', 'openDirectory'],
@@ -69,7 +77,6 @@ ipcMain.handle('select-project', async () => {
   const selectedPath = result.filePaths[0];
   const stats = fs.statSync(selectedPath);
 
-  // Se for ZIP, extrair
   if (stats.isFile() && selectedPath.endsWith('.zip')) {
     try {
       const tempDir = path.join(os.tmpdir(), 'lynx-publisher-' + Date.now());
@@ -84,7 +91,6 @@ ipcMain.handle('select-project', async () => {
     }
   }
 
-  // Se for pasta
   if (stats.isDirectory()) {
     return await analyzeProject(selectedPath);
   }
@@ -92,7 +98,6 @@ ipcMain.handle('select-project', async () => {
   return { success: false, message: 'Selecione uma pasta ou arquivo ZIP' };
 });
 
-// Analisar projeto
 async function analyzeProject(projectPath) {
   const hasGit = fs.existsSync(path.join(projectPath, '.git'));
   const hasRemote = hasGit ? await gitManager.hasRemote(projectPath) : false;
@@ -113,22 +118,21 @@ async function analyzeProject(projectPath) {
   };
 }
 
-// Criar novo repositório
 ipcMain.handle('create-repo', async (event, { projectPath, repoName, isPrivate }) => {
   return await gitManager.createNewRepo(projectPath, repoName, isPrivate);
 });
 
-// Listar repositórios existentes
 ipcMain.handle('list-repos', async () => {
   return await gitManager.listRepos();
 });
 
-// Conectar a repositório existente
 ipcMain.handle('connect-existing-repo', async (event, { projectPath, repoUrl }) => {
   return await gitManager.connectExistingRepo(projectPath, repoUrl);
 });
 
-// ========== GITIGNORE ==========
+ipcMain.handle('delete-repo', async (event, repoName) => {
+  return await gitManager.deleteRepo(repoName);
+});
 
 ipcMain.handle('get-gitignore', async (event, projectPath) => {
   return await ignoreManager.getGitignore(projectPath);
@@ -142,14 +146,20 @@ ipcMain.handle('add-common-patterns', async (event, projectPath) => {
   return await ignoreManager.addCommonPatterns(projectPath);
 });
 
-// ========== BRANCHES ==========
-
 ipcMain.handle('list-branches', async (event, projectPath) => {
   return await branchManager.listBranches(projectPath);
 });
 
 ipcMain.handle('get-current-branch', async (event, projectPath) => {
   return await branchManager.getCurrentBranch(projectPath);
+});
+
+ipcMain.handle('get-last-commit', async (event, projectPath) => {
+  return await gitOperations.getLastCommit(projectPath);
+});
+
+ipcMain.handle('get-sync-status', async (event, projectPath) => {
+  return await gitOperations.getSyncStatus(projectPath);
 });
 
 ipcMain.handle('create-branch', async (event, { projectPath, branchName }) => {
@@ -164,19 +174,13 @@ ipcMain.handle('push-branch', async (event, { projectPath, branchName }) => {
   return await branchManager.pushBranch(projectPath, branchName);
 });
 
-// ========== MERGE ==========
-
 ipcMain.handle('merge-to-main', async (event, projectPath) => {
   return await branchManager.mergeToMain(projectPath);
 });
 
-// ========== REPOSITORY MANAGEMENT ==========
-
 ipcMain.handle('disconnect-repo', async (event, projectPath) => {
   return await gitManager.disconnectRepo(projectPath);
 });
-
-// ========== GIT OPERATIONS ==========
 
 ipcMain.handle('git-init', async (event, projectPath) => {
   return await gitOperations.gitInit(projectPath);
@@ -216,4 +220,8 @@ ipcMain.handle('git-stash', async (event, projectPath) => {
 
 ipcMain.handle('git-stash-pop', async (event, projectPath) => {
   return await gitOperations.gitStashPop(projectPath);
+});
+
+ipcMain.handle('configure-git-user', async (event, { projectPath, username, email }) => {
+  return await gitOperations.configureGitUser(projectPath, username, email);
 });

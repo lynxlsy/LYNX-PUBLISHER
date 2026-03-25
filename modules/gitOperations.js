@@ -2,7 +2,6 @@ const { exec } = require('child_process');
 const { promisify } = require('util');
 const execAsync = promisify(exec);
 
-// Executar comando
 async function runCommand(command, cwd) {
   try {
     const { stdout, stderr } = await execAsync(command, { cwd });
@@ -12,7 +11,6 @@ async function runCommand(command, cwd) {
   }
 }
 
-// Git init
 async function gitInit(projectPath) {
   const result = await runCommand('git init', projectPath);
   
@@ -23,7 +21,6 @@ async function gitInit(projectPath) {
   return { success: true, message: '✓ Repositório Git inicializado' };
 }
 
-// Git status
 async function gitStatus(projectPath) {
   const result = await runCommand('git status', projectPath);
   
@@ -34,7 +31,6 @@ async function gitStatus(projectPath) {
   return { success: true, output: result.output };
 }
 
-// Git add
 async function gitAdd(projectPath, files = '.') {
   const result = await runCommand(`git add ${files}`, projectPath);
   
@@ -45,21 +41,64 @@ async function gitAdd(projectPath, files = '.') {
   return { success: true, message: `✓ Arquivos adicionados: ${files}` };
 }
 
-// Git commit
 async function gitCommit(projectPath, message) {
-  const result = await runCommand(`git commit -m "${message}"`, projectPath);
+  // First, check if there are changes to commit
+  const statusResult = await runCommand('git status --porcelain', projectPath);
+  
+  if (statusResult.success && !statusResult.output.trim()) {
+    return { success: false, message: 'Nenhuma alteração para commitar. Todos os arquivos já foram commitados.' };
+  }
+  
+  // Check if git user is configured
+  const userCheck = await runCommand('git config user.name', projectPath);
+  const emailCheck = await runCommand('git config user.email', projectPath);
+  
+  // If not configured, set default values
+  if (!userCheck.success || !userCheck.output) {
+    const setNameResult = await runCommand('git config user.name "Lynx Publisher User"', projectPath);
+    if (!setNameResult.success) {
+      return { success: false, message: 'Erro ao configurar nome do usuário Git: ' + setNameResult.error };
+    }
+  }
+  
+  if (!emailCheck.success || !emailCheck.output) {
+    const setEmailResult = await runCommand('git config user.email "user@lynxpublisher.local"', projectPath);
+    if (!setEmailResult.success) {
+      return { success: false, message: 'Erro ao configurar email do usuário Git: ' + setEmailResult.error };
+    }
+  }
+  
+  // Escape double quotes in message
+  const escapedMessage = message.replace(/"/g, '\\"');
+  const result = await runCommand(`git commit -m "${escapedMessage}"`, projectPath);
   
   if (!result.success) {
     if (result.error.includes('nothing to commit')) {
       return { success: false, message: 'Nenhuma alteração para commitar' };
     }
-    return { success: false, message: 'Erro ao fazer commit: ' + result.error };
+    // Return full error details for debugging
+    const errorDetails = result.error || result.output || 'Erro desconhecido';
+    return { 
+      success: false, 
+      message: 'Erro ao fazer commit: ' + errorDetails,
+      fullError: errorDetails
+    };
   }
   
   return { success: true, message: '✓ Commit realizado com sucesso' };
 }
 
-// Git push
+async function configureGitUser(projectPath, username, email) {
+  const nameResult = await runCommand(`git config user.name "${username}"`, projectPath);
+  const emailResult = await runCommand(`git config user.email "${email}"`, projectPath);
+  
+  if (!nameResult.success || !emailResult.success) {
+    return { success: false, message: 'Erro ao configurar usuário Git' };
+  }
+  
+  return { success: true, message: '✓ Usuário Git configurado' };
+}
+
 async function gitPush(projectPath, force = false) {
   const forceFlag = force ? '--force' : '';
   const result = await runCommand(`git push origin HEAD ${forceFlag}`, projectPath);
@@ -71,7 +110,6 @@ async function gitPush(projectPath, force = false) {
   return { success: true, message: '✓ Push realizado com sucesso' };
 }
 
-// Git pull
 async function gitPull(projectPath) {
   const result = await runCommand('git pull origin HEAD', projectPath);
   
@@ -85,7 +123,6 @@ async function gitPull(projectPath) {
   return { success: true, message: '✓ Pull realizado com sucesso' };
 }
 
-// Git log
 async function gitLog(projectPath, limit = 10) {
   const result = await runCommand(`git log --oneline -${limit}`, projectPath);
   
@@ -96,7 +133,6 @@ async function gitLog(projectPath, limit = 10) {
   return { success: true, output: result.output };
 }
 
-// Git reset
 async function gitReset(projectPath) {
   const result = await runCommand('git reset --soft HEAD~1', projectPath);
   
@@ -107,7 +143,6 @@ async function gitReset(projectPath) {
   return { success: true, message: '✓ Último commit desfeito (arquivos mantidos)' };
 }
 
-// Git stash
 async function gitStash(projectPath) {
   const result = await runCommand('git stash', projectPath);
   
@@ -122,7 +157,6 @@ async function gitStash(projectPath) {
   return { success: true, message: '✓ Alterações guardadas no stash' };
 }
 
-// Git stash pop
 async function gitStashPop(projectPath) {
   const result = await runCommand('git stash pop', projectPath);
   
@@ -136,6 +170,56 @@ async function gitStashPop(projectPath) {
   return { success: true, message: '✓ Alterações recuperadas do stash' };
 }
 
+async function getLastCommit(projectPath) {
+  const result = await runCommand('git log -1 --pretty=format:"%h - %s (%an, %ar)"', projectPath);
+  
+  if (!result.success) {
+    return { success: false, message: 'Erro ao obter último commit' };
+  }
+  
+  if (!result.output) {
+    return { success: true, commit: null };
+  }
+  
+  const parts = result.output.match(/^(\w+) - (.+) \((.+), (.+)\)$/);
+  if (parts) {
+    return {
+      success: true,
+      commit: {
+        hash: parts[1],
+        message: parts[2],
+        author: parts[3],
+        date: parts[4]
+      }
+    };
+  }
+  
+  return { success: true, commit: { message: result.output, author: '-', date: '-' } };
+}
+
+async function getSyncStatus(projectPath) {
+  const fetchResult = await runCommand('git fetch', projectPath);
+  
+  if (!fetchResult.success) {
+    return { success: false, message: 'Erro ao buscar informações do remoto' };
+  }
+  
+  const statusResult = await runCommand('git rev-list --left-right --count HEAD...@{u}', projectPath);
+  
+  if (!statusResult.success) {
+    return { success: false, message: 'Erro ao verificar sincronização' };
+  }
+  
+  const [ahead, behind] = statusResult.output.split('\t').map(n => parseInt(n) || 0);
+  
+  return {
+    success: true,
+    ahead,
+    behind,
+    synced: ahead === 0 && behind === 0
+  };
+}
+
 module.exports = {
   gitInit,
   gitStatus,
@@ -146,5 +230,8 @@ module.exports = {
   gitLog,
   gitReset,
   gitStash,
-  gitStashPop
+  gitStashPop,
+  getLastCommit,
+  getSyncStatus,
+  configureGitUser
 };
