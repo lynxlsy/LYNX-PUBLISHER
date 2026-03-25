@@ -2430,18 +2430,21 @@ function renderGitStep(data) {
 
 function renderRepoStep(data) {
   if (appState.project && appState.project.hasRemote) {
-    const repoUrl = appState.project.remoteUrl || 'Conectado';
+    const repoName = appState.project.remoteInfo?.fullName || appState.project.remoteUrl || 'Conectado';
     return `
       <div class="step-success-card">
         <div class="step-success-icon">✅</div>
         <div>
           <div class="step-info-title">Repositório conectado</div>
-          <div class="step-info-text">${repoUrl}</div>
+          <div class="step-info-text">${repoName}</div>
         </div>
       </div>
       <div class="button-group">
         <button onclick="openGithubRepo()" class="secondary">
           🌐 Abrir no GitHub
+        </button>
+        <button onclick="disconnectAndChangeRepo()" class="secondary">
+          🔄 Trocar Repositório
         </button>
       </div>
     `;
@@ -3143,6 +3146,29 @@ async function connectGuidedRepo(name, url) {
       ]
     });
   }
+}
+
+async function disconnectAndChangeRepo() {
+  try {
+    if (appState.project?.path) {
+      await window.electronAPI.disconnectRepo(appState.project.path);
+    }
+  } catch (e) {
+    // Ignore error if remote doesn't exist
+  }
+
+  // Reset state
+  appState.project.hasRemote = false;
+  appState.project.remoteInfo = null;
+  appState.project.remoteUrl = null;
+
+  // Reset step status
+  if (guidedStepper) {
+    guidedStepper.updateStepStatus(3, 'active', null);
+    refreshGuidedStepper();
+  }
+
+  addUnifiedLog('Repositório desconectado. Selecione um novo repositório.', 'info');
 }
 
 async function createGuidedRepo() {
